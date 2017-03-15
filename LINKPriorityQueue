@@ -1,3 +1,4 @@
+//跳表,实现了删除查找，插入的功能；
 #include <stdio.h>
 #include <stdlib.h>
 #define  datatype int
