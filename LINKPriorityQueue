@@ -1,0 +1,133 @@
+#include <stdio.h>
+#include <stdlib.h>
+#define  datatype int
+#define  keytype  int
+typedef struct node
+{
+	datatype data;
+	keytype key;
+	struct node *next;
+}NODE;
+NODE *creatnode()
+{
+	NODE *head;
+	head = new NODE;
+	head->data = -1;
+	head->key = -1;
+	head->next = NULL;
+	return head;
+}
+NODE *insertnode(NODE *head, datatype data, keytype key)
+{
+	NODE *p;
+	NODE *p1;
+	p1 = new NODE;
+	p = head;
+	if (p->next== NULL)
+	{
+		p->next= new NODE;
+		p->next->data = data;
+		p->next->key = key;
+		p->next->next = NULL;
+	}
+	else
+	{
+		while (p->next != NULL)
+		{
+			if (key < p->next->key)
+			{
+				
+				p1 = new NODE;
+				p1->data = data;
+				p1->key = key;
+				p1->next = p->next;
+				p->next = p1;
+				return head;
+				
+				
+
+			}
+			p = p->next;
+
+			
+		}
+		if (p->next == NULL)
+		{
+			p->next = new NODE;
+			p->next->data = data;
+			p->next->key = key;
+			p->next->next = NULL;
+		}
+	}
+	return head;
+}
+NODE *outqueue(NODE *head)
+{
+	NODE *p;
+	p = head;
+	while (p->next != NULL)
+	{
+		printf("(%d,%d)\n", p->next->key, p->next->data);
+		
+		//p->next= p->next->next; 
+		p->next= p->next->next;
+	}
+	return head;
+
+}
+void printlist(NODE *head)
+{
+	NODE *p;
+	p = head;
+	while (p!=NULL)
+	{
+		printf("(%d,%d)\n", p->key, p->data);
+		p = p->next;
+	}
+}
+void searchnode(NODE *head, keytype key) {
+	NODE *p;
+	int flag = 0;
+	p = head;
+	while (p != NULL)
+	{
+		if (p->key != key)
+		{
+			p = p->next;
+		}
+		else
+		{
+			flag = 1;
+			printf("搜索成功！且key-value对为(%d,%d)\n", p->key, p->data);
+			break;
+		}
+	}
+	if (!flag)
+	{
+		printf_s("查找失败！\n");
+	}
+}
+int main()
+{
+	NODE *head;
+	keytype key;
+	printf_s("创建空队列：\n");
+	head = creatnode();
+	printf_s("入队：\n");
+	head = insertnode(head, 12, 5);
+    head = insertnode(head, 18, 9);
+	head = insertnode(head, 34, 2);
+	head = insertnode(head, 44, 3);
+	head = insertnode(head, 18, 10);
+	printf_s("当前队列：\n");
+	printlist(head);
+	printf_s("查找key-value对：请输入key值：\n");
+	scanf_s("%d", &key);
+	searchnode(head, key);
+	printf_s("出队：\n");
+	outqueue(head);
+	printf_s("当前队列：\n");
+	printlist(head);
+	system("pause");
+	return 0;
+}
