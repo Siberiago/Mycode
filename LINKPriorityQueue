@@ -1,4 +1,4 @@
-//跳表,实现了删除查找，插入的功能；
+//用链表结构实现的优先队列，核心思想就是在每次插入的时候提前根据优先级排序出队的时候就按照已有顺序出队。
 #include <stdio.h>
 #include <stdlib.h>
 #define  datatype int
