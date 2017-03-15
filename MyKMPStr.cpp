@@ -1,11 +1,13 @@
-//来个备注吧，的确是认认真真的写的
+//几天中断不在纠结这个bug，之后本帅来一波进一步调试完美解决了前面伪匹配的问题,原因在于前n-1个已经匹配上了，最后一个竟然不匹配了，这是十分愚蠢的，
+//于是我在之后的判断已匹配成功的字符数与子串长度比较之前又加了一个判断比较最后一位字符的if语句就完事了，汗.......
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 //KMP算法的实质是不用逐次的比较子串和母串的每一个字符，因为当某一部分重叠的时候，已匹配的字符串已经失去了意义，目前还不知道证明过程
 //要写出部分匹配表：partial match table
 //根据匹配表获取每次移动数字；
-#define MAXSTR 100
+#define MAXSTR 50000
 void oppostrncpy_s(char mov[20], char t[20], int n)
 {
 	int i, length;
@@ -106,9 +108,11 @@ int kmpmatch(char s[MAXSTR], char t[20])
 
 					if (tpoint+1 == length2)
 					{
-						flag = 1;
-						//printf_s("%d %d\n", spoint, tpoint);
-						return (spoint-length2+2);
+						if (s[spoint] == t[tpoint]) {
+							flag = 1;
+							//printf_s("%d %d\n", spoint, tpoint);
+							return (spoint - length2 + 2);
+						}
 					}
 					else;
 				}
@@ -169,3 +173,53 @@ int main()
 	return 0;
 
 }
+void givevalue(char s[MAXSTR], int n)
+{
+	int i, ran;
+	for (i = 0; i < (n - 3); i++)
+	{
+		ran = rand() % (118 - 97 + 1) + 97;
+		s[i] = ((char*)(&ran))[0];
+
+	}
+	s[n - 3] = 'x';
+	s[n - 2] = 'y';
+	s[n - 1] = 'z';
+	s[n] = '\0';
+}
+/*
+int main()
+{
+	char s[MAXSTR];
+	char t[10] = "xyz";
+	int i, n;
+	clock_t start, finish;
+	float duration;
+	printf_s("输入母串规模：\n");
+	scanf_s("%d", &n);
+	givevalue(s, n);
+	printf_s("母串创建完毕！\n");
+	printf_s("母串为：\n");
+	printf_s("%s", s);
+	//计算匹配时间；
+	start = clock();
+	i=kmpmatch(s, t);
+	finish = clock();
+	duration = finish - start;
+	if (i)printf_s("\n匹配成功且匹配位置为%d\n", i);
+	else printf_s("\n匹配失败\n");
+	printf_s("\n程序运行时间为%f\n", duration);
+
+	system("pause");
+	return 0;
+	
+
+
+
+
+
+
+
+
+}
+*/
