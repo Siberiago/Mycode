@@ -1,0 +1,156 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#define MAXSIZE 100
+#define keytype int
+#define valuetype int
+#define MAXKEY 10000
+typedef struct minstack
+{
+	keytype key;
+	valuetype value;
+}STACK;
+void insertnode(STACK *sta, int nosize)
+{
+	int in, on;
+	printf_s("请输入节点/key值/value值：");
+	scanf_s("%d", &in);
+	scanf_s("%d", &on);
+	sta[nosize].key = in;
+	sta[nosize].value = on;
+}
+int getlevel(int nosize)
+{
+	int i=1;
+	int j=1;
+	while (j < nosize)
+	{
+		j *= 2;
+		j += 1;
+		i++;
+		if (j >= nosize)
+		{
+			return i;
+		}
+	}
+}
+
+void adjustnode(STACK *sta,int nosize)
+{
+	int i,m;
+	keytype k;
+	valuetype v;
+	int level;
+	level = getlevel(nosize);
+	
+	
+		for (i = 1; i < level; i++)
+		{
+			if (sta[nosize].key <= sta[nosize / 2].key)
+			{
+				k = sta[nosize / 2].key;
+				v = sta[nosize / 2].value;
+				sta[nosize / 2].key = sta[nosize].key;
+				sta[nosize / 2].value = sta[nosize].value;
+				sta[nosize].key = k;
+				sta[nosize].value = v;
+				nosize /= 2;
+			}
+			else;
+		}
+		
+	
+	//return sta;
+}
+
+void outnode(STACK *sta, int nosize)
+{
+
+	int i,k,temp,temq;
+	int level = getlevel(nosize);
+	for (i = 1; i <= nosize; i++) {
+		printf_s("(%d,%d)\n", sta[1].key, sta[1].value);//时间复杂度竟然是n^2;
+		sta[1].key = MAXKEY;
+		for (k = 1; k < nosize; k++)
+		{
+			adjustnode(sta, nosize - k + 1);
+		}
+	}
+}
+
+
+
+void findnode(STACK *sta, keytype key, int nosize)
+{
+	int i, k;
+	int  flag =0;
+	for (i = 1; i <= nosize; i++)
+	{
+		if (sta[i].key == key)
+		{
+			flag = 1;
+			printf_s("查询成功！且你要查询的key值对应的value值为：%d\n", sta[i].value);
+			break;
+		}
+		else;
+	}
+	if (!flag)
+	{
+		printf_s("查询失败！\n");
+	}
+}
+int deletenode(STACK *sta, keytype key,int nosize)
+{
+	int i,k;
+	for (i = 1; i <= nosize; i++)
+	{
+		if (sta[i].key == key)
+		{
+			for (k = i; k < nosize; k++)
+			{
+				sta[k].key = sta[k + 1].key;
+				sta[k].value = sta[k + 1].value;
+			}
+			nosize -= 1;
+		}
+	}
+	return nosize;
+}
+
+
+
+void printorinalarray(STACK *sta,int nosize)
+{
+	int i;
+	for (i = 1; i <= nosize; i++)
+	{
+		printf_s("(%d,%d)   ", sta[i].key, sta[i].value);
+	}
+}
+int main()
+{
+	STACK sta[MAXSIZE];
+	int nosize;
+	int key;
+	int KEY;
+	printf_s("输入堆元素个数：\n");
+	scanf_s("%d", &nosize);
+	for (int i = 1; i <=nosize; i++)
+	{
+		insertnode(sta,i);
+		adjustnode(sta,i);
+	}
+	printorinalarray(sta, nosize);
+	printf_s("查找元素：\n");
+	printf_s("请输入你要查找的key值：\n");
+	scanf_s("%d", &KEY);
+	findnode(sta, KEY, nosize);
+	printf_s("输入删除元素key值：\n");
+	scanf_s("%d", &key);
+	nosize=deletenode(sta, key, nosize);
+	printorinalarray(sta, nosize);
+	printf_s("出队：\n");
+	outnode(sta, nosize);
+	system("pause");
+	return 0;
+}
