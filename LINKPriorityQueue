@@ -43,13 +43,8 @@ NODE *insertnode(NODE *head, datatype data, keytype key)
 				p1->next = p->next;
 				p->next = p1;
 				return head;
-				
-				
-
 			}
 			p = p->next;
-
-			
 		}
 		if (p->next == NULL)
 		{
@@ -58,6 +53,28 @@ NODE *insertnode(NODE *head, datatype data, keytype key)
 			p->next->key = key;
 			p->next->next = NULL;
 		}
+	}
+	return head;
+}
+NODE *deletenode(NODE *head, keytype key)
+{
+	NODE *p,*q;
+	int i, k;
+	p = head;
+	int flag=0;
+	while (p->next!=NULL)
+	{
+		if (p->next->key == key)
+		{
+			flag = 1;
+			printf_s("删除成功，且原key对应的data值为:%d\n", p->next->data);
+			p->next = p->next->next;
+		}
+		p = p->next;
+	}
+	if (!flag)
+	{
+		printf_s("删除失败！\n");
 	}
 	return head;
 }
@@ -124,6 +141,10 @@ int main()
 	printf_s("查找key-value对：请输入key值：\n");
 	scanf_s("%d", &key);
 	searchnode(head, key);
+	printf_s("删除节点，请输入你要删除的节点key值：\n");
+	scanf_s("%d", &key);
+	deletenode(head, key);
+	printlist(head);
 	printf_s("出队：\n");
 	outqueue(head);
 	printf_s("当前队列：\n");
