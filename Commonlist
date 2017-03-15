@@ -1,3 +1,4 @@
+//普通的链表，实现了插入查找，删除功能，作用是为了后续与跳表对比
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
