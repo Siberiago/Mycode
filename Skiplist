@@ -1,0 +1,232 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+//1 5 8 6 10 54 69 93 101 84
+#define MAXLEVEL 16 //最大层数
+//newnode生成一个Node结构体,同时生成包含n个Node *元素的数组
+#define newnode(n) ((Node*)malloc(sizeof(Node)+n*sizeof(Node*)))
+
+typedef int keyType;
+typedef int valueType;
+
+//每个节点的数据结构
+typedef struct node
+{
+	keyType key;
+	valueType value;
+	struct node *next[1];
+} Node;
+//跳表结构
+typedef struct skip_list
+{
+	int level;
+	Node *head;
+} skip_list;
+// 创建节点
+Node *create_node(int level, keyType key, valueType val)
+{
+	Node *p = newnode(level);
+	if (!p)
+		return NULL;
+	p->key = key;
+	p->value = val;
+	return p;
+}
+//创建跳跃表
+skip_list *create_sl()
+{
+	skip_list *sl = (skip_list*)malloc(sizeof(skip_list));//申请跳表结构内存
+	if (NULL == sl)
+		return NULL;
+
+	sl->level = 0;// 设置跳表的层level，初始的层为0层（数组从0开始）
+
+	Node *h = create_node(MAXLEVEL - 1, 0, 0);//创建头结点
+	if (h == NULL)
+	{
+		free(sl);
+		return NULL;
+	}
+	sl->head = h;
+	int i;
+	// 将header的next数组清空
+	for (i = 0; i<MAXLEVEL; ++i)
+	{
+		h->next[i] = NULL;
+	}
+	srand(time(0));
+	return sl;
+}
+//生成随机层数
+int randomLevel()
+{
+	int level = 1;
+	while (rand() % 2)
+		level++;
+	level = (MAXLEVEL>level) ? level : MAXLEVEL;
+	return level;
+}
+bool insert(skip_list *sl, keyType key, valueType val)
+{
+	Node *update[MAXLEVEL];
+	Node *q = NULL, *p = sl->head;//q,p初始化
+	int i = sl->level - 1;
+
+	for (; i >= 0; --i)
+	{
+		while ((q = p->next[i]) && q->key<key)
+			p = q;
+		update[i] = p;
+	}
+	if (q && q->key == key)//key已经存在的情况下
+	{
+		q->value = val;
+		return true;
+	}
+	int level = randomLevel();
+	//如果新生成的层数比跳表的层数大
+	if (level > sl->level)
+	{
+		for (i = sl->level; i < level; ++i)
+		{
+			update[i] = sl->head;
+		}
+		sl->level = level;
+	}
+	q = create_node(level, key, val);
+	if (!q)
+		return false;
+	for (i = level - 1; i >= 0; --i)
+	{
+		q->next[i] = update[i]->next[i];
+		update[i]->next[i] = q;
+	}
+	return true;
+}
+// 删除节点
+bool erase(skip_list *sl, keyType key)
+{
+	Node *update[MAXLEVEL];
+	Node *q = NULL, *p = sl->head;
+	int i = sl->level - 1;
+	for (; i >= 0; --i)
+	{
+		while ((q = p->next[i]) && q->key < key)
+		{
+			p = q;//与插入节点一样，先要找到所有与要删除节点相连的节点并记录；
+		}
+		update[i] = p;
+	}
+	if (!q || (q&&q->key != key))
+		return false;
+
+	
+	for (i = sl->level - 1; i >= 0; --i)
+	{
+		if (update[i]->next[i] == q)
+		{
+			update[i]->next[i] = q->next[i];
+			if (sl->head->next[i] == NULL)//如果删掉的是更高的节点，要降层
+				sl->level--;
+		}
+	}
+	free(q);
+	q = NULL;
+	return true;
+}
+// 查找
+valueType *search(skip_list *sl, keyType key)
+{
+	Node *q, *p = sl->head;
+	q = NULL;
+	int i;
+	for ((i = sl->level - 1); i >= 0; --i)
+	{
+		while ((q = p->next[i]) && q->key<key)
+		{
+			p = q;
+		}
+		if (q && key == q->key)
+			return &(q->value);
+	}
+	return NULL;
+}
+
+//从最高层开始逐层打印
+void print_sl(skip_list *sl,int number)
+{
+	Node *q;
+	int flag = 1;
+	int i = sl->level - 1;
+	for (; i >= 0; --i)
+	{
+		q = sl->head->next[i];
+		printf("level %d:   ", i + 1);
+		while (q)
+		{
+			printf(" %d,%d ", q->key, q->value);
+			q = q->next[i];
+		}
+		printf("\n");
+		
+	}
+}
+
+
+void arrayox(int a[], int number)
+{
+	int i;
+	for (i = 0; i<number; i++)
+	{
+		printf_s("input your array:\n");
+		scanf_s("%d", &a[i]);
+	}
+	printf_s("end input\n");
+}
+void printarray(int a[], int number)
+{
+	int i;
+	for (i = 0; i<number; i++)
+	{
+		printf("%d ", a[i]);
+	}
+	printf("input array end\n");
+}
+int main()
+{
+
+	skip_list *sl = create_sl();
+	int i = 1, key, number, a[100];
+	clock_t start1, finish1, start2, finish;
+	//输入总数组的元素个数；
+	printf_s("please input the total number of the array:\n");
+	scanf_s("%d", &number);
+	arrayox(a, number);
+	printarray(a, number);
+	//录入跳表
+	for (i = 0; i<number; i++)
+	{
+		insert(sl, a[i], a[i]);
+	}
+	print_sl(sl,number);
+	//开始搜索跳表元素；
+	printf_s("input the search number：\n");
+	scanf_s("%d", &key);
+	start1 = clock();
+	int *p = search(sl, key);
+	finish1 = clock();
+	if (p)
+		printf_s("value of key %d is %d\n", key, *p);
+	else printf_s("search fail!\n");
+	printf_s("the search time is %f seconds", (finish1 - start1) / CLOCKS_PER_SEC);
+	//删除跳表元素；
+	printf_s("input the delete number:\n");
+	scanf_s("%d", &key);
+	if (erase(sl, key))printf_s("delete!\n");
+	else printf_s("fail to delete!\n");
+	print_sl(sl,number);
+	system("pause");
+
+
+	return 0;
+}
