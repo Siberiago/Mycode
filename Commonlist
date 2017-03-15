@@ -1,0 +1,110 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+typedef struct node
+{
+	int data;
+	struct node *next;
+}NODE;
+
+
+NODE *createhead()
+{
+	NODE *head;
+	head = new NODE;
+	head->data = -1;
+	head->next = NULL;
+	return head;
+}
+NODE *createlist(NODE *head, int n)
+{
+	NODE *p;
+	p = head;
+	for (int i = 1; i <=n; i++)
+	{
+		p->next = new NODE;
+		p->next->data = i;
+		p->next->next = NULL;
+		p = p->next;
+	}
+	return head;
+}
+int searchnode(NODE *head, int data)
+{
+	NODE *p;
+	p = head;
+	int flag = 0;
+	while (p)
+	{
+		if (p->data == data) {
+			flag = 1;
+			return flag;
+		}
+		else p = p->next;
+	}
+	if (flag == 0)
+		return 0;
+}
+NODE *delectnode(NODE *head, int data)
+{
+	NODE *p, *p1;
+	p = head;
+	if (p == NULL)return NULL;
+	else {
+		while (p != NULL)
+		{
+			p1 = p;
+			p1 = p1->next;
+			if (p1->data == data)
+			{
+				p->next = p1->next;
+				free(p1);
+				break;
+			}
+			p = p->next;
+
+		}
+		return head;
+	}
+
+}
+void printlist(NODE *head)
+{
+	NODE *p;
+	p = head->next;
+
+	while (p != NULL)
+	{
+		printf_s("%d ->", p->data);
+		p = p->next;
+	}
+	printf("\n");
+}
+int main()
+{
+	NODE *head;
+	int n;
+	int search;
+	int delect;
+
+	printf_s("\nplease input the number of data:\n");
+	scanf_s("%d", &n);
+	head = createhead();
+	head = createlist(head, n);
+	printlist(head);
+
+	
+	printf_s("\nplease input the search data:\n");
+	scanf_s("%d", &search);
+	if (searchnode(head, search))printf_s("\nable to search\n");
+	else printf_s("\nfail to search\n");
+
+
+	printf_s("\nplease input the delcet data:\n");
+	scanf_s("%d", &delect);
+	head = delectnode(head, delect);
+	printlist(head);
+	system("pause");
+	return 0;
+}
