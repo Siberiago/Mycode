@@ -1,3 +1,4 @@
+//没什么可说的了，最愚蠢，最暴力的匹配算法，bulid+debug很短时间就搞定了。
 #include<stdio.h>
 #include<stdlib.h>
 #include <time.h>
