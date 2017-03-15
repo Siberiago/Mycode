@@ -1,0 +1,120 @@
+#include <stdio.h>
+#include <stdlib.h>
+typedef struct node
+{
+	int data;
+	struct node *next;
+}NODE;
+NODE *creathead()
+{
+	NODE *head;
+	head = new NODE;
+		head->data = 0;
+		head->next = NULL;
+	
+	return head;
+}
+NODE *addnode(NODE *head, int data)
+{
+	NODE *p;
+	p = head;
+	if (p->next == NULL) {
+		p->next = new NODE;
+		p->next->data = data;
+		p->next->next = NULL;
+	}
+	else {
+		while (p->next != NULL)
+		{
+			p = p->next;
+		}
+		if (p->next== NULL)
+		{
+			p->next= new NODE;
+			p->next->data = data;
+			p->next->next = NULL;
+		}
+	}
+
+	return head;
+}
+NODE *outnode(NODE *head)
+{
+	NODE *p,*newhead;
+	p = head;
+	printf_s("\n出队列元素：%d\n", p->data);
+	newhead=p->next;
+	return newhead;
+
+}
+void findnode(int data,NODE *head)
+{
+	NODE *p;
+	int  flag = 0;
+	p = head;
+	while (p != NULL)
+	{
+		if (p->data == data) { 
+			flag = 1;
+			printf_s("yes,we have found it!and the data is:%d", p->data); 
+			break;
+
+		}
+		else
+		p = p->next;
+	}
+	if (flag == 0)
+		printf_s("no,we failed to find it\n");
+
+}
+void printqueue(NODE *head)
+{
+	NODE *p;
+	p = head;
+	printf_s("打印队列\n");
+	while (p != NULL)
+	{
+		printf_s("%d ->", p->data);
+		p = p->next;
+	}
+}
+void printmess()
+{
+	printf_s("----------------------\n");
+	printf_s("case1:进入队列\n");
+	printf_s("case2:出队列\n");
+	printf_s("按0退出程序\n");
+	printf_s("----------------------\n");
+}
+int main()
+{
+	
+	NODE *head;
+	int total,judge,choose,n,data;
+		head = creathead();
+		printf_s("\n创建队列成功！\n");
+			printf_s("\n进入队列！\n");
+				printf_s("\n输入队列节点元素个数：\n");
+				scanf_s("%d", &n);
+				for (int i = 0; i < n; i++) {
+					printf_s("\n输入进队列元素：\n");
+					scanf_s("%d", &data);
+					head = addnode(head, data);
+					printqueue(head);
+				}
+	    
+				printf_s("\ninput the wanted data:\n");
+				scanf_s("%d", &data);
+				findnode(data, head);
+
+
+
+			printf_s("\n出队列！\n");
+			for (int i = 0; i <=n; i++)
+			{
+				head = outnode(head);
+				printqueue(head);
+				}
+	system("pause");
+	return 0;
+}
