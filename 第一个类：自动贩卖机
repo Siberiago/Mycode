@@ -1,0 +1,79 @@
+#include<iostream>
+
+
+
+using namespace std;
+
+class machineshop
+{
+	int a, b;
+public:
+	void inmoney(int mon);
+	void newmachine(int a,int b);
+	void printnow();
+	int money;
+	int sale;
+	int havegive;
+};
+void machineshop::printnow()
+{
+	cout << "当前存额为：" << money << endl;
+}
+void machineshop::newmachine(int a,int b)
+{
+	havegive = 0;
+	
+	money = a;
+	sale = b;
+}
+
+void machineshop::inmoney(int mon)
+{
+	//int flag=0;
+	havegive += mon;
+	if (havegive < sale)
+	{
+	cout << "不够，继续投钱!" << endl<<"你已经投了"<<havegive<<endl<<"你还需要投："<<sale-havegive<<endl;
+	
+	money += mon;
+    }
+	else//(mon >= sale)
+	{
+		if (money > (havegive - sale)) {
+			money += sale;
+			cout << "找零：" << (havegive - sale) << endl;
+			
+		}
+		else
+		{
+			cout << "售货机余额不足,请明天再来！" << endl;
+		}
+		havegive = 0;
+		
+	}
+	//return flag;
+}
+
+
+int main()
+{
+	int i, j, k;
+	cout << "输入初始存额：" << endl;
+	cin >> i;
+	cout << "输入售价" << endl;
+	cin >> j;
+	machineshop S;
+	S.newmachine(i, j);
+	while (S.money>=0)
+	{
+		cout << "当前售价为：" << S.sale << endl << "输入缴费额" << endl;
+		cin >> k;
+		S.inmoney(k);
+		S.printnow();
+	}
+	system("pause");
+	return 0;
+}
+
+
+
