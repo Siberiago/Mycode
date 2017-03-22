@@ -1,0 +1,99 @@
+
+#include <iostream>
+#include <math.h>
+#include <string.h>
+
+using namespace std;
+#define ElementType char
+typedef enum { Link, Thread }PointerTag;
+
+typedef struct BiThrNode
+{
+	ElementType Data;
+	struct BiThrNode *Left;
+	struct BiThrNode *Right;
+	PointerTag Ltag;
+	PointerTag Rtag;
+}BiThrNode, *BiThrTree;
+
+BiThrNode *pre;
+void CreatTree(BiThrTree *BT)
+{
+	char ch;
+	cin >> ch;
+	if (ch == '#') *BT = NULL;
+	else
+	{
+		*BT = (BiThrNode*)malloc(sizeof(struct BiThrNode));
+		(*BT)->Data = ch;
+		(*BT)->Ltag = Link;
+		(*BT)->Rtag = Link;
+		CreatTree(&(*BT)->Left);
+		CreatTree(&(*BT)->Right);
+	}
+}
+void PretravelBT(BiThrTree T)
+{
+	if (T != NULL)
+	{
+		cout << T->Data << " ";
+		PretravelBT(T->Left);
+		PretravelBT(T->Right);
+	}
+}
+
+void PreThreding(BiThrTree BT)
+{
+	if (BT)
+	{
+		if (!BT->Left)
+		{
+			BT->Ltag = Thread;
+			BT->Left = pre;
+		}
+		if (!pre->Right)
+		{
+			pre->Right = BT;
+			pre->Rtag = Thread;
+		}
+		pre = BT;
+		if (BT->Ltag == Link)
+			PreThreding(BT->Left);//递归左孩子线索化
+		if (BT->Rtag == Link)
+			PreThreding(BT->Right);//递归右孩子线索化
+	}
+}
+
+void PreThreadTravel(BiThrTree T)
+{
+	BiThrTree p = T->Left;
+	cout << T->Data << " ";
+	while (p != T)
+	{
+		cout << p->Data << " ";
+		if (p->Ltag == Link)
+			p = p->Left;
+		else
+			p = p->Right;
+	}
+}
+int main()
+{
+	BiThrTree root = NULL;
+	BiThrTree p = NULL;
+	cout << "创建普通二叉树(按照前根方式)" << endl;
+	CreatTree(&root);
+	cout << "前序遍历：" << endl;
+	PretravelBT(root);
+	cout << endl;
+	pre = root;
+    cout << "前序线索化：" << endl;
+	PreThreding(root);
+	pre->Right=root;
+	cout << "打印前序线索化二叉树" << endl;
+	PreThreadTravel(root);
+	cout << endl;
+	system("pause");
+	return 0;
+
+}
