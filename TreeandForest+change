@@ -1,0 +1,103 @@
+#include <iostream>
+using namespace std;
+
+typedef struct treestruct
+{
+	struct treestruct *lchild;
+	struct treestruct *rchild;
+	char data;
+}Bnode,*Btree;
+
+void PreCreatetree(Btree *T)
+{
+	char ch;
+	
+	cin >> ch;
+	if (ch == '#')*T = NULL;
+	else
+	{
+		*T = (Bnode*)malloc(sizeof(struct treestruct));
+		(*T)->data = ch;
+		PreCreatetree(&(*T)->lchild);
+		PreCreatetree(&(*T)->rchild);
+	}
+}
+void Pretraveltree(Btree T)
+{
+	if (T)
+	{
+		cout << T->data <<" ";
+		Pretraveltree(T->lchild);
+		Pretraveltree(T->rchild);
+	}
+}
+void Fortotree(Btree T1, Btree T2)
+{
+	Bnode *ptr;
+	if (!(T1->rchild))//T1没有右子树，直接将T2接在T1的右子树位置；
+	{
+	    T1->rchild = T2;
+	}
+	else
+	{
+		ptr = T1->rchild;
+		while (ptr->rchild)
+		{
+			ptr = ptr->rchild;
+		 }
+		ptr->rchild = T2;
+	}
+}
+Btree *Treetofor(Btree T0)
+{
+	//拆分原则：右子树中若某一节点只有右子树没有左子树则要拆分；
+	Bnode *ptr;
+	Bnode *TX;
+	if (T0)
+	{
+		ptr = T0;
+		while (ptr->rchild)
+		{
+			ptr = ptr->rchild;
+			if ((ptr->rchild) && (!ptr->lchild))
+			{
+				TX = ptr->rchild;
+				cout << endl<<"拆分出的树为：" << endl;
+				Pretraveltree(TX);
+			}
+			
+		}
+	}
+	return &ptr;
+}
+//12###
+//12##3##
+int main()
+{
+	Btree T1, T2,T0;
+	cout << "建立二叉树森林" << endl;
+	cout << "建立第一棵树" << endl;
+	PreCreatetree(&T1);
+	cout << "建立第二棵树" << endl;
+	PreCreatetree(&T2);
+	cout << "建立第三棵树" << endl;
+	PreCreatetree(&T0);
+	cout <<endl<< "第一棵树：" << endl;
+	Pretraveltree(T1);
+	cout <<endl<< "第二棵树：" << endl;
+	Pretraveltree(T2);
+	cout << endl << "第三棵树：" << endl;
+	Pretraveltree(T0);
+	cout <<endl<< "两棵树构成的森林转化为二叉树" << endl;
+	Fortotree(T1, T2);
+	Pretraveltree(T1);
+	cout <<endl<< "三棵树构成的森林转化为二叉树" << endl;
+	Fortotree(T1, T0);
+	Pretraveltree(T1);
+
+	cout << endl<<"拆分二叉树" << endl;
+	Treetofor(T1);
+
+	system("pause");
+	return 0;
+}
