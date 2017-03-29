@@ -1,0 +1,196 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+/*采用左孩子右兄弟法保存普通树
+而且此时采用先序遍历时发现无论是二叉树还是转化之前的普通树，其遍历结果都是一样的，所以可以直接才用左孩子右兄弟法直接
+存储普通树，这里的逻辑结构是普通树，而实际的物理结构则是二叉链表
+之后的所有操作都是针对二叉树的，包括将每个单独的二叉树构成的森林转化为一个比较大的二叉树和将得到的新二叉树转化为森林；
+
+*/
+
+
+
+
+typedef struct treestruct
+{
+	struct treestruct *firstchild;
+	struct treestruct *rightbrother;
+	char data;
+}node, *tree;
+
+
+
+
+class TREE
+{
+public:
+	tree T;
+	TREE()
+	{
+		T = new(node);
+	}
+		void PreCreatetree(tree *T);
+		void Pretraveltree(tree T);
+		void Fortotree(tree T1, tree T2);
+		void Treetofor(tree T0);
+};
+
+
+void TREE::PreCreatetree(tree *T)
+{
+	char ch;
+
+	cin >> ch;
+	if (ch == '#')*T = NULL;
+	else
+	{
+		*T = (node*)malloc(sizeof(struct treestruct));
+		(*T)->data = ch;
+		PreCreatetree(&(*T)->firstchild);
+		PreCreatetree(&(*T)->rightbrother);
+	}
+}
+void TREE::Pretraveltree(tree T)
+{
+	if (T)
+	{
+		cout << T->data << " ";
+		Pretraveltree(T->firstchild);
+		Pretraveltree(T->rightbrother);
+	}
+}
+void TREE::Fortotree(tree T1, tree T2)
+{
+	node *ptr;
+	if (!(T1->rightbrother))//T1没有右子树，直接将T2接在T1的右子树位置；
+	{
+		T1->rightbrother = T2;
+	}
+	else
+	{
+		ptr = T1;
+		while (ptr->rightbrother)
+		{
+			ptr = ptr->rightbrother;
+		}
+		ptr->rightbrother = T2;
+	}
+}
+void ExtendingPrint(tree T)
+{
+	if (T)
+	{
+		cout << T->data;
+		if (T->firstchild != NULL )
+		{
+			cout << "(";
+			ExtendingPrint(T->firstchild);	
+		}
+		if (T->rightbrother != NULL)
+		{
+			ExtendingPrint(T->rightbrother);	
+		}
+		if(T->rightbrother==NULL)
+		cout << ")";
+	}
+}
+void TREE::Treetofor(tree T0)
+{
+	//拆分原则：右子树中若某一节点只有右子树没有左子树则要拆分；
+	node *ptr;
+	node *TX;
+	node *turnnode0;
+	node *turnnode1;
+	if (T0)
+	{
+		ptr = T0;
+		T0 = ptr;
+		turnnode0 = T0;
+		while (ptr && (ptr->rightbrother))
+		{
+			turnnode0 = ptr;
+			ptr = ptr->rightbrother;
+			if (!(ptr->rightbrother))
+			{
+				TX = ptr;
+				ptr = turnnode0;
+				cout << endl << "拆分出的二叉树前序为：" << endl;
+				Pretraveltree(TX);
+				cout << endl;
+				cout << endl << "拆分出的二叉树广义表为：" << endl;
+				ExtendingPrint(TX);
+				cout << endl << "*****************************************************************" << endl;
+				ptr->rightbrother = NULL;
+				ptr = T0;
+			}
+		}
+	}
+}
+
+//ABE#F##C#DG####
+//HIL##JM##KN####
+//OP#QS#T##R###
+//UVW#X#Y##Z###
+//AB#C#D###
+int main()
+{
+	TREE tank;
+	tree T0,T1, T2, T3, T4;
+	int n;
+	vector<tree>Tarray;
+	cout << endl << "*****************************************************************" << endl;
+	cout << "左孩子右兄弟建立普通树方法：" << endl << "先输入节点是其父亲节点的第一个孩子节点，孩子以#表示输入完毕，再输入父亲节点的右侧兄弟节点，以#表示输入完毕";
+	cout << endl << "*****************************************************************" << endl;
+	cout << "输入森林树的个数：" << endl;
+	
+	cin >> n;
+	for (int i = 0; i < n; i++) {
+		cout << endl << "*****************************************************************" << endl;
+		cout << "采用左孩子右兄弟法建立普通树"<<i+1 <<":"<< endl;
+		Tarray.push_back(T0);
+		tank.PreCreatetree(&Tarray[i]);
+		cout << endl << "先序遍历第"<<i+1<<"棵普通树" << endl;
+		
+		tank.Pretraveltree(Tarray[i]);
+		cout << endl;
+		cout << endl << "广义打印第" << i + 1 << "棵普通树" << endl; cout << "(";
+		ExtendingPrint(Tarray[i]);
+		cout << endl;
+		cout << endl << "*****************************************************************" << endl;
+	}
+	system("pause");
+	cout <<endl<< "森林构造完毕，开始合并为二叉树：" << endl;
+	
+	for (int i = 1; i < n; i++)
+	{
+		cout << endl << "*****************************************************************" << endl;
+		cout << endl << "将第"<<i+1<<"棵树并入前树形成新的二叉树:" << endl;
+		tank.Fortotree(Tarray[0], Tarray[i]);
+		cout << endl << "先序遍历并入后的二叉树" << endl;
+		tank.Pretraveltree(Tarray[0]); 
+		cout << endl;
+		cout << endl << "此时二叉树广义表：" << endl; cout << "(";
+		ExtendingPrint(Tarray[0]);
+	}
+	system("pause");
+	cout <<endl<< "*****************************************************************" << endl;
+	cout<<endl << "森林合并完成！开始拆分二叉树：" << endl;
+	cout << endl << "*****************************************************************" << endl;
+
+
+	cout <<endl<< "由于左孩子右兄弟法的构造规则，每个子树的根节点都没有右孩子，因此合并之后再拆分出的树和原来必然一样" << endl;
+	cout << endl << endl << "拆分二叉树：" << endl;
+	tank.Treetofor(Tarray[0]);
+	cout << endl << "*****************************************************************" << endl;
+	cout << endl << "剩余普通树为：" << endl;
+	tank.Pretraveltree(Tarray[0]);
+	cout << endl;
+	cout << endl << "广义打印剩余树" << endl; cout << "(";
+	ExtendingPrint(Tarray[0]);
+	cout << endl << "*****************************************************************" << endl;
+	cout << endl;
+	system("pause");
+	return 0;
+
+}
+/*You should be shame!*/
