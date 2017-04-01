@@ -1,0 +1,701 @@
+/*本次只实现了K叉哈夫曼编码的压缩，在五叉以及以下的情况下都可以运行，超过五叉在visual studio的编译环境会出问题，同时，使用之前应当先建立一个源Txt文件就可以跑了然而很遗憾没能实现压缩其他文件和解码
+*/
+
+
+
+
+#include <iostream>
+#include <string.h>
+#include <iomanip>
+#include <stdio.h>
+#include <queue>
+#include <vector>
+#include <functional>
+#include "define.h"
+#include <fstream>
+#include <math.h>
+using namespace std;
+#define N 10000
+#define M 100
+//结构体数组，用于暂时保存字母信息
+struct node
+{
+	char name;
+	int num;
+	int longth;
+};
+typedef struct node NODE;
+struct HuffNode
+{
+	vector<HuffNode *> pchild;
+	int num;
+	char name;
+	int code;
+	HuffNode(int K)
+	{
+		num = 0;
+		name = '*';
+		code = 0;
+		pchild.resize(K);
+	}
+
+};
+
+class Compare
+{
+public:
+	bool operator() (const HuffNode *lhs, const HuffNode *rhs) const
+	{
+		return lhs->num > rhs->num;
+	}
+};
+void putin(NODE *head, HuffNode *&root, int K)
+{
+	priority_queue<HuffNode *, vector<HuffNode * >, Compare> heap;
+	HuffNode *fill, *ptr, *parent;
+	fill = new HuffNode(K);
+	int a = head[0].longth;
+	for (int i = 0; i <a; ++i)
+	{
+		ptr = new HuffNode(K);
+		ptr->name = head[i].name;
+		ptr->num = head[i].num;
+		heap.emplace(ptr);
+	}
+	while (heap.size() != 1)
+	{
+		parent = new HuffNode(K);
+		ptr = new HuffNode(K);
+		if ((heap.size() < K) && K != 2)
+		{
+			for (int i = 0; i < (K - heap.size()); i++)
+			{
+				heap.emplace(fill);
+			}
+		}
+		for (int nump = 0; nump < K; nump++)
+		{
+			ptr = heap.top();
+			parent->num += ptr->num;
+			parent->pchild[nump] = ptr;
+			int k = parent->num;
+			heap.pop();
+		}
+		heap.emplace(parent);
+	}
+	root = heap.top();
+	cout << "根节点参数为：" << root->num << endl;
+}
+
+void Encode(HuffNode *root, int K)
+{
+	if (root->pchild[0])
+	{
+		for (int i = 0; i < K; i++)
+		{
+			root->pchild[i]->code = i;
+			Encode(root->pchild[i], K);
+		}
+	}
+}
+int huffbox[100];
+int index = 0;
+ofstream   ofresult("D:/OrignalCodeTable.txt ", ios::app);
+float ptttr = 0.839678;
+void Outocode(HuffNode *root, int K)
+{
+	if (root)
+	{
+		for (int i = 0; i < K; i++)
+		{
+			if (root->pchild[i])
+			{
+				huffbox[index] = root->pchild[i]->code;
+				index++;
+				Outocode(root->pchild[i], K);
+			}
+
+		}
+		if (root->pchild[0] == NULL)
+		{
+			cout << "当前字符为：" << root->name << "           ";
+			ofresult << root->name << endl;
+			cout << "对应的" << K << "进制编码为：";
+			for (int j = 0; j < index; j++)
+			{
+				cout << huffbox[j];
+				ofresult << huffbox[j];
+			}
+			cout << endl;
+			ofresult << endl;
+		}
+	}
+	index--;
+}
+//排序数组
+void sortnode(int length, NODE *head);
+//将字母出现次数即频率存入结构体数组
+void Predeal(char s[N], NODE *head);
+//初步打印统计数组信息
+void outputcalctable(int k, NODE *head, int length);
+//排序数组
+void sortnode(NODE *head)
+{
+	int i, j, temp, k;
+	k = head[0].longth;
+	char  ch;
+	for (i = 0; i < k; i++)
+	{
+		for (j = i; j < k; j++)
+		{
+			if (head[i].num > head[j].num)
+			{
+				temp = head[j].num;
+				head[j].num = head[i].num;
+				head[i].num = temp;
+				ch = head[j].name;
+				head[j].name = head[i].name;
+				head[i].name = ch;
+			}
+		}
+	}
+}
+float pttr = 0.881024;
+//将字母出现次数即频率存入结构体数组
+void Predeal(char s[N], NODE *head)
+{
+	int i, j, length;
+	int k = 1;
+	int flag = 0;
+	length = strlen(s);
+	head[0].name = s[0];
+	head[0].num = 1;
+	//acab
+	for (i = 1; i < length; i++)
+	{
+		j = 0;
+		while (j < k)
+		{
+			if (head[j].name == s[i])
+			{
+				head[j].num += 1;
+				j = k + 1;
+			}
+			else
+			{
+				j++;
+			}
+		}
+		if (j == k)
+		{
+			head[k].name = s[i];
+			head[k].num = 1;
+			k++;
+		}
+		else;
+	}
+	for (i = 0; i < k; i++)
+	{
+		head[i].longth = k;
+	}
+	sortnode(head);
+}
+//初步打印统计数组信息
+void outputcalctable(NODE *head, int length)
+{
+	int k = head[0].longth;
+	cout << "letter    ";
+	for (int i = 0; i < k; i++)
+	{
+		cout << head[i].name << "       ";
+	}cout << endl;
+	cout << "number    ";
+	for (int i = 0; i < k; i++)
+	{
+		cout << head[i].num << "       ";
+	}cout << endl;
+	cout << "rate      ";
+	for (int i = 0; i < k; i++)
+	{
+
+		printf_s("%.2f    ", (head[i].num*100.0 / length));
+	}cout << endl;
+}
+struct CodeLink
+{
+	char name;
+	char num[35];
+	int longth;
+};
+typedef struct CodeLink CL;
+void KtoTenCode(CL *LINK, int K)
+{
+	int i;
+	int turn = 0, y;
+	int length;
+	for (i = 0; i < LINK[0].longth; i++)
+	{
+		length = strlen(LINK[i].num);
+		for (y = 0; y < length; y++)
+		{
+			turn = pow(K, (LINK[0].longth - i))*LINK[i].num[i];
+			LINK[i].num[i] = turn;
+		}
+
+	}
+}
+
+void givelib(int K, char x[100], char y[100])
+{
+	int i, j;
+	int lib;
+	int length;
+	char nod;
+	int ll;
+	length = strlen(x);
+	for (i = 2; i < K; i++)
+	{
+		if (pow(2, i) >= K)
+		{
+			lib = i;
+			break;
+		}
+	}
+	for (j = 0; j < length; j++)
+	{
+		char bb = x[j];
+		char buff[30];
+		int dd = atoi(&bb);
+		_itoa_s(dd, buff, 2);
+		if (strlen(buff) < lib)
+		{
+			char zanshi[10];
+			for (int lmn = 0; lmn < strlen(buff); lmn++)
+			{
+				zanshi[lmn] = buff[lmn];
+			}
+			ll = (lib - strlen(buff));
+			for (int kk = 0; kk < ll; kk++)
+			{
+				buff[kk] = '0';
+			}
+			for (int lmn = ll; lmn < lib; lmn++)
+			{
+				buff[lmn] = zanshi[lmn - ll];
+			}
+		}
+		for (i = 0; i < lib; i++)
+		{
+			y[j*lib + i] = buff[i];
+		}
+	}
+	y[j*lib + 1] = '\0';
+}
+ofstream   ofresult1("D:/OutTwoCode.txt ", ios::app);
+void givelib2(int K, char a)
+{
+	int i, j;
+	int lib;
+	int lol[100];
+	for (i = 1; i < K; i++)
+	{
+		if (pow(2, i) >= K)
+		{
+			lib = i;
+			break;
+		}
+	}
+	int b = atoi(&a);
+	for (i = 0; i < lib; i++)
+	{
+		lol[i] = b % 2;
+		b /= 2;
+
+	}
+	for (i = lib - 1; i >= 0; i--)
+	{
+		ofresult1 << lol[i];
+	}
+}
+ofstream   ofresulty("D:/HeiHeiHei.txt ", ios::app);
+void TwotoTen(char a[10])
+{
+	int i;
+	int b[9];
+	int tencode = 0, mix;
+	for (i = 0; i < 8; i++)
+	{
+		b[i] = a[i] - '0';
+	}
+	for (i = 7; i >= 0; i--)
+	{
+		mix = pow(2, i)*b[7 - i];
+		tencode += mix;
+	}
+	ofresulty << char(tencode);
+}
+int ptr1 = 1462;
+int ptr0 = 1036;
+struct CodeLink1
+{
+	char name;
+	string num;
+	int longth;
+};
+typedef struct CodeLink1 CL1;
+int main()
+{
+	/********************************主函数定义部分*************************************/
+	int k, i = 0, length;
+	int xx = 0;
+	int K;
+	char s[N], s1[N];
+
+	struct node head[N];
+	struct CodeLink LINK[N];
+	struct CodeLink LINK1[N];
+	cout << "********************* Welcome to HuffCode System!********************" << endl;
+	cout << "************************可能生成的文件*************************" << endl;
+	cout << "************************D://String.txt:源文件*****************************" << endl;
+	cout << "************************D://Outputcalctable.txt:统计字符信息文件*******************************" << endl;
+	cout << "************************D://OrignalCodeTable.txt:K进制字符对应表*******************************" << endl;
+	cout << "************************D;//OrignalTwoCodeTable.txt:2进制字符对应表****************************" << endl;
+	cout << "************************D;//OutKCode.txt:根据K进制字符对应表将源文件转化的K进制码文件**********" << endl;
+	cout << "************************D://OutTwoCode.txt:根据2-K进制对应关系将K进制码文件转化的2进制码文件***" << endl;
+	cout << "************************D://HeiHeiHei.txt:根据2进制码文件转化的压缩txt文件*********************" << endl;
+	cout << "Please input K:" << endl;
+	cin >> K;
+
+	if (K > 2)
+	{
+		cout << "********************************由于建立的是K叉哈夫曼树，因此需经过三次主要文件操作***********************************" << endl;
+		cout << "********************************一次获取K进制码，一次获取K进制码,一次获取ASCII乱码**********************************" << endl;
+		/********************************第一次文件操作*************************************/
+		/********************************用于将要操作的文本文件输入到字符串里*************************************/
+		/********************************这里暂时将所有的空格换成下划线*************************************/
+		FILE *fp;
+		char ch;
+		int mmp = 0;
+		cout << "*******************************************************************" << endl;
+		cout << "文件位置在<<D:/>>开始读取目标文件D:/String.txt" << endl;
+		int flag = fopen_s(&fp, "D:/String.txt", "r");
+		while ((ch = fgetc(fp)) != EOF)
+		{
+			s[mmp] = ch;
+			mmp++;
+		}
+		s[mmp] = '\0';
+		//打印读入的字符串s;
+		cout << "*******************************************************************" << endl;
+		system("pause");
+		cout << "文件已读取完毕，开始打印" << endl;
+		cout << s << endl;
+		//拷贝s到s1，对s1进行空格替换操作；
+		strcpy_s(s1, s);
+		length = strlen(s1);
+		cout << "*******************************************************************" << endl;
+		cout << "暂时将空格转化为下划线：" << endl;
+		system("pause");
+		for (i = 0; i < length; i++)
+		{
+			if (s1[i] == ' ')s1[i] = '_';
+		}
+		//打印转化后的字符串s1;
+		cout << endl << s1 << endl;
+		cout << "*******************************************************************" << endl;
+		system("pause");
+		//对字符串进行预处理，预先统计每个字母的出现次数，频率
+		Predeal(s1, head);
+		//cout << endl << "the total number of deferent letter is  " << head[0].longth << endl;
+		//outputcalctable(head, length);
+		cout << "*******************************************************************" << endl;
+		cout << "开始统计所有出现字母的频率信息并写入文件：D:/Outputcalctable.txt" << endl;
+		{
+			ofstream   ofresultx("D:/Outputcalctable.txt ", ios::app);
+
+			int k = head[0].longth;
+			ofresultx << "letter           ";
+			ofresultx << "number           ";
+			ofresultx << "rate             " << endl;
+			for (int i = 0; i < k; i++)
+			{
+				ofresultx << head[i].name << "           ";
+				ofresultx << head[i].num << "           ";
+				ofresultx << setprecision(4) << (head[i].num*100.0 / length) << endl;
+				ofresultx << endl;
+			}
+			ofresultx.close();
+		}
+		cout << "/********************************开始构建K叉哈夫曼树*************************************/" << endl;
+		system("pause");
+		HuffNode *root;
+		root = new HuffNode(K);
+		//putin函数构建K叉哈夫曼
+		putin(head, root, K);
+		cout << endl;
+		cout << "/********************************K叉哈夫曼树构建完毕,开始K进制编码*************************************/" << endl;
+		system("pause");
+		//为哈夫曼树的每个节点分配K进制编码
+		Encode(root, K);
+		cout << endl;
+		//读取到达每个叶子节点之前所历经的K进制编码串，在屏幕上初次打印,并记录到文件OrignalCode.txt文件下进行初次保存；
+		cout << "****************预览K进制对应表****************" << endl;
+		Outocode(root, K);
+		cout << endl << endl;
+		/********************************读取K进制编码到LINK结构体数组中*************************************/
+		cout << "/********************************K进制编码写入文件D:/OrignalCodeTable.txt*************************************/" << endl;
+		system("pause");
+		ifstream in;
+		in.open("D:/OrignalCodeTable.txt");
+		if (!in)cout << "打开文件失败！" << endl;
+		else
+		{
+			while (!in.eof())
+			{
+				in >> LINK[xx].name;
+				in >> LINK[xx].num;
+				xx++;
+			}
+			LINK[0].longth = xx;
+			in.close();
+		}
+		cout << "/********************************开始第一次处理目标字符数组*************************************/" << endl;
+		cout << "/********************************根据已经获得的K进制编码表将整个String.txt转化为K进制格式,存入D:/OutKCode.txt*************************************/" << endl;
+		system("pause");
+		ofstream   ofresult0("D:/OutKCode.txt ", ios::app);
+		for (i = 0; i < length; i++)
+		{
+			for (int j = 0; j < LINK[0].longth; j++)
+			{
+				if (s1[i] == LINK[j].name)
+				{
+					ofresult0 << LINK[j].num;
+
+				}
+			}
+		}
+		ofresult0.close();
+		cout << "/********************************开始2进制编码*************************************/" << endl;
+		cout << "/********************************将目前的K进制编码表改正为2进制编码表*************************************/" << endl;
+		system("pause");
+
+		for (i = 0; i < LINK[0].longth - 1; ++i)
+		{
+			givelib(K, LINK[i].num, LINK1[i].num);
+			LINK1[i].name = LINK[i].name;
+		}
+		LINK1[0].longth = LINK[0].longth;
+		cout << "/********************************预览2进制表*************************************/" << endl;
+		ofstream   ofresultz("D:/OrignalTwoCodeTable.txt ", ios::app);
+		for (i = 0; i < LINK1[0].longth - 1; i++)
+		{
+			cout << "当前字符：" << LINK1[i].name << "                 " << "对应的2进制码：" << LINK1[i].num << endl;
+
+			ofresultz << LINK1[i].name;
+
+			ofresultz << LINK1[i].num << "                 " << endl;
+			ofresultz << endl;
+		}
+		cout << "/********************************开始第二次处理目标字符数组*************************************/" << endl;
+		cout << "/********************************根据已经获得的2进制编码表将整个D:/OutKCode.txt转化为2进制格式,存入D:/OutTwoCode.txt *************************************/" << endl;
+		system("pause");
+		
+		FILE *fp0;
+
+		char c;
+
+		int flag1 = fopen_s(&fp0, "D://OutKCode.txt", "r");
+		while ((ch = fgetc(fp0)) != EOF)
+		{
+			givelib2(K, ch);
+
+		}
+
+		ofresult1.close();
+
+		//***********************************************************************************************
+		//***********************************************************************************************
+		//***********************************************************************************************
+		//***********************************************************************************************
+		//***********************************************************************************************
+		//***********************************************************************************************
+		//***********************************************************************************************
+		//***********************************************************************************************
+		//***********************************************************************************************
+		//***********************************************************************************************
+		//***********************************************************************************************
+		//***********************************************************************************************
+		cout << "/********************************开始第三次处理目标字符数组*************************************/" << endl;
+		cout << "/********************************根据2进制转10进制方法将整个D:/OutTwoCode.txt转化为十进制数字对应的ASCII码压缩格式,存入D:/heiheihei.txt *************************************/" << endl;
+		system("pause");
+		ifstream in0;
+		int px = 0;
+		char ppx[10];
+		in0.open("D:/OutTwoCode.txt");
+		if (!in0)cout << "打开文件失败！" << endl;
+		else
+		{
+			while (!in0.eof())
+			{
+				in0 >> ppx[px];
+				px++;
+				if (px == 8)
+				{
+					TwotoTen(ppx);
+					px = 0;
+				}
+			}
+
+		}
+		
+		ofresult.close();
+		ofresult0.close();
+		ofresult1.close();
+		cout << "结束，请看文件内容：" << endl;
+		system("pause");
+
+	}
+	else if(K==2)
+	{
+		/********************************第一次文件操作*************************************/
+		/********************************用于将要操作的文本文件输入到字符串里*************************************/
+		/********************************这里暂时将所有的空格换成下划线*************************************/
+		FILE *fp;
+		char ch;
+		int mmp = 0;
+		cout << "********************************由于建立的是二叉哈夫曼树，因此只需经过两次主要文件操作***********************************" << endl;
+		cout << "********************************一次获取2进制码，一次获取ASCII乱码**********************************" << endl;
+		cout << "*******************************************************************" << endl;
+		cout << "文件位置在<<D:/>>开始读取目标文件D:/String.txt" << endl;
+		int flag = fopen_s(&fp, "D:/String.txt", "r");
+		while ((ch = fgetc(fp)) != EOF)
+		{
+			s[mmp] = ch;
+			mmp++;
+		}
+		
+		s[mmp] = '\0';
+		//打印读入的字符串s;
+		cout << "*******************************************************************" << endl;
+		system("pause");
+		cout << "文件已读取完毕，开始打印" << endl;
+		cout << s << endl;
+		//拷贝s到s1，对s1进行空格替换操作；
+		strcpy_s(s1, s);
+		length = strlen(s1);
+		cout << "*******************************************************************" << endl;
+		cout << "暂时将空格转化为下划线：" << endl;
+		system("pause");
+		for (i = 0; i < length; i++)
+		{
+			if (s1[i] == ' ')s1[i] = '_';
+		}
+		//打印转化后的字符串s1;
+		cout << endl << s1 << endl;
+		cout << "*******************************************************************" << endl;
+		system("pause");
+		//对字符串进行预处理，预先统计每个字母的出现次数，频率
+		Predeal(s1, head);
+		cout << "/********************************开始构建K叉哈夫曼树*************************************/" << endl;
+		system("pause");
+		HuffNode *root;
+		root = new HuffNode(K);
+		//putin函数构建K叉哈夫曼
+		putin(head, root, K);
+		cout << endl;
+		cout << "/********************************K叉哈夫曼树构建完毕,开始K进制编码*************************************/" << endl;
+		system("pause");
+		//为哈夫曼树的每个节点分配K进制编码
+		Encode(root, K);
+		cout << endl;
+		//读取到达每个叶子节点之前所历经的K进制编码串，在屏幕上初次打印,并记录到文件OrignalCode.txt文件下进行初次保存；
+		cout << "****************预览K进制对应表****************" << endl;
+		Outocode(root, K);
+		cout << endl << endl;
+		/********************************读取K进制编码到LINK结构体数组中*************************************/
+		cout << "/********************************K进制编码写入文件D:/OrignalCodeTable.txt*************************************/" << endl;
+		system("pause");
+		ifstream in;
+		in.open("D:/OrignalCodeTable.txt");
+		if (!in)cout << "打开文件失败！" << endl;
+		else
+		{
+			while (!in.eof())
+			{
+				in >> LINK[xx].name;
+				in >> LINK[xx].num;
+				xx++;
+			}
+			LINK[0].longth = xx;
+			in.close();
+		}
+		cout << "/********************************开始第一次处理目标字符数组*************************************/" << endl;
+		cout << "/********************************根据已经获得的2进制编码表将整个String.txt转化为K进制格式,存入D:/OutTwoCode.txt*************************************/" << endl;
+		system("pause");
+
+		ofstream   ofresult0("D:/OutTwoCode.txt ", ios::app);
+		for (i = 0; i < length; i++)
+		{
+			for (int j = 0; j < LINK[0].longth; j++)
+			{
+				if (s1[i] == LINK[j].name)
+				{
+					ofresult0 << LINK[j].num;
+				}
+			}
+		}
+		ofresult0.close();
+		cout << "/********************************开始第二次处理目标字符数组*************************************/" << endl;
+		cout << "/********************************根据2进制转10进制方法将整个D:/OutTwoCode.txt转化为十进制数字对应的ASCII码压缩格式,存入D:/heiheihei.txt *************************************/" << endl;
+
+		system("pause");
+		ifstream in0;
+		int px = 0;
+		char ppx[10];
+		in0.open("D:/OutTwoCode.txt");
+		if (!in0)cout << "打开文件失败！" << endl;
+		else
+		{
+			while (!in0.eof())
+			{
+				in0 >> ppx[px];
+				px++;
+				if (px == 8)
+				{
+					TwotoTen(ppx);
+					px = 0;
+				}
+			}
+
+		}
+		
+
+
+
+
+
+
+
+		int luanlength = ptr0;
+		length = ptr1;
+		//float pttr = luanlength / length;
+		cout << endl;
+		
+
+
+
+
+		cout << "转化完成，请看文件" << endl;
+	}
+	else
+	{
+		cout << "你可能需要操作其他文件" << endl;
+
+	}
+	
+	system("pause");
+	return 0;
+
+
+
+}
