@@ -2,7 +2,9 @@
 //，超过五叉在visual studio的编译环境会出问题，
 //同时，使用之前应当先建立一个源Txt文件就可以跑了
 //然而很遗憾没能实现压缩其他文件和解码
-
+//String.txt
+/*Fourscore and seven years ago,our fathers brought forth upon this continent a new nation,conceived and dedicated to the proposition that all men are created equal.Now we are egaged in a great civil war,testing whether that nation or any nation so conceived and dedicated can long endure.We are met on the battelfield of that war.We have come to dedicate a portion of that field as a final-resting place for those who gave their lives that the nation might live.It is altogether and proper that we should do this.But, in a larger sense,we can not dedicate,we can not consecrate,we can not hallow this ground.The brave men,living and dead,have consecrated it far above our power to add or detract.The world will little note what we say here,but it can never forget what they did here.It is for us,the living,rather to be dedicated to the great task remaining before us,that from these honored dead we take increased devotion to that cause for which they gave the last full measure of devotion,that the nation shall have a new birth of freedom,that the goverment of the people by the people and for the people shall not perish from the earth. 
+*/
 
 
 
