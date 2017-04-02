@@ -1,0 +1,202 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <iostream>
+using namespace std;
+#define BITTREE_H
+#define OK 1
+#define ERROR 0
+#define TRUE 1
+#define FALSE 0
+typedef enum { Link, Thread } PointTag;//一样，枚举结构
+typedef char Element;
+typedef int Status;
+typedef struct Node {
+	Element data;
+	struct Node* left;
+	struct Node* right;
+	PointTag Ltag;
+	PointTag Rtag;
+}BitNode, *BitTree;
+class A
+{
+public:
+	BitTree T;
+	A()
+	{
+		T = new(BitNode);
+	}
+	Status visit(Element e);
+	Status CreateTree(BitTree &T);
+	void InThreading(BitTree p);
+	void InOrderThreading(BitTree &H, BitTree T);
+	BitTree Parent(BitTree Thr, BitTree p);
+	void InOrderTraverse_Thr(BitTree L);
+	BitTree pre;
+
+};
+
+
+Status A::visit(Element e)
+{
+	printf("%c ", e);
+	return OK;
+}
+Status A::CreateTree(BitTree &T) //前序创建二叉树
+{
+	Element ch;
+	scanf_s("%c", &ch);
+	if (ch == '#')
+		T = NULL;
+	else
+	{
+		T = (BitTree)malloc(sizeof(BitNode));
+		if (!T)
+			exit(OVERFLOW);
+		T->data = ch;
+		T->Ltag = Link;
+		T->Rtag = Link;
+		CreateTree(T->left);
+		CreateTree(T->right);
+	}
+	return OK;
+}
+void A::InThreading(BitTree p) //后序线索二叉树
+{
+	if (p)
+	{//线索化和先序相似，没有左节点左节点就是前驱，没有右节点，后继就是右节点
+		InThreading(p->left);
+		InThreading(p->right);
+		if (!p->left)
+		{
+			p->left = pre;
+			p->Ltag = Thread;
+		}
+		if (!pre->right)
+		{
+			pre->right = p;
+			pre->Rtag = Thread;
+		}
+		pre = p;
+	}
+}
+void A::InOrderThreading(BitTree &H, BitTree T) //创建头节点,后序线索二叉树
+{
+
+	//跟先序相似，根节点没有进入线索化序列，找一个点，把所有的节点都串起来
+	H = (BitTree)malloc(sizeof(BitNode));
+	H->right = H;
+	H->Rtag = Link;
+	if (!T)
+	{
+		H = NULL;
+	}
+	else
+	{
+		pre = H;
+		H->left = T;
+		H->Ltag = Link;
+		InThreading(T);
+		H->right = pre;
+	}
+}
+BitTree A::Parent(BitTree Thr, BitTree p)  //取得节点的父节点
+{
+	BitTree temp = Thr;//如果这个点就是根节点，返回始祖串节点
+	if (temp->left == p)
+		return temp;
+	else
+	{
+		temp = temp->left;
+		while (temp->left != p && temp->right != p)//显然后序线索树是靠右连接的链，应当以右为优先，从最后一个遍历的节点开始，要么下一个走他的左儿子，要么走他的前驱
+		{
+			if (temp->Rtag == Link)
+				temp = temp->right;//如果有右节点，右节点是他的前驱，如果没有右节点，左节点是他的前驱
+			else
+				temp = temp->left;  //有左孩子去左孩子,没有左孩子,去前驱;
+		}//获取父亲节点的思路就是顺着已经线索化好的链从后向前找，一定能找到；
+	}
+	return temp;
+}
+void Postravel(BitTree T)
+{
+	if (!T)
+		return;
+	else {
+		Postravel(T->left);
+		Postravel(T->right);
+		cout << T->data << " ";
+	}
+}
+void A::InOrderTraverse_Thr(BitTree Thr)//后序遍历二叉树
+{
+	
+	BitTree temp = Thr->left;
+	BitTree par = NULL;
+	while (true)
+	{
+		while (temp->Ltag == Link)
+			temp = temp->left;                 
+		if (temp->Rtag == Link)         //获取最左节点，也就是第一个节点
+			temp = temp->right;
+		else
+			break;
+	}
+	while (temp != Thr)//下面进行大规模讨论，面临的最大问题是有可能该节点仅指向下一个节点但是下一个节点不指向该节点，这意味着断开了，需要找到下一个节点的下一个节点
+	{                  //所要做的就是遍历到根节点，到了根节点就停止了(是指我们构造的根节点)
+		visit(temp->data);
+		par = Parent(Thr, temp);  //获得节点temp的父节点
+		
+		if (par == Thr)
+		{//若父节点是Thr则节点temp为根节点,无后继，当前节点就是根节点直接退出；
+			temp = Thr;
+		}
+
+
+
+
+		//若最左节点不是根节点
+		//第一种情况，如果父亲节点不是完全的，而是只有一个叶子，那么父亲节点一定是当前节点的后继节点；//而且这相当于返回上一层
+		else if (par->Rtag == Thread || temp == par->right) 
+			temp = par;
+
+		//第二种情况，父亲节点有两颗子树，这就比较复杂了
+		else               
+		{
+			//那么就要下一个节点就是父亲节点的右子树中的最左叶子
+			while (par->Rtag == Link)
+			{
+				par = par->right;//获取右子树
+				while (par->Ltag == Link)
+				{
+					par = par->left;//获取右子树中的最左节点
+				}
+			}
+			temp = par;
+		}
+	}
+}
+//ABDHN###IOP##Q###EG#RS#T###K##CF#LU#VW####G#MX#YZ####
+int main()
+{
+	BitTree H, To;
+	To = new BitNode;
+	A teet;
+	teet.T = To;
+	cout << "*************************************************************************" << endl;
+	cout << "**************************PostThreadingTree******************************" << endl;
+	cout << "*************************************************************************" << endl;
+	cout << "前序建立普通二叉树" << endl;
+	teet.CreateTree(To);
+	cout << "*************************************************************************" << endl;
+	cout << "后序遍历二叉树：" << endl;
+	cout << "*************************************************************************" << endl;
+	Postravel(To);
+	teet.InOrderThreading(H, To);
+	cout << "*************************************************************************" << endl;
+	cout << "后序遍历后序线索二叉树：" << endl;
+	cout << "*************************************************************************" << endl;
+	teet.InOrderTraverse_Thr(H);
+	system("pause");
+	return 0;
+}
