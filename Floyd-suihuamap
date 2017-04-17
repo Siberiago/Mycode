@@ -1,0 +1,132 @@
+/*包含绥化市的十五个较为关键的地点以及三十几个比较重要的街道构成的边，本来想写成想百度地图那样支持字符串输入的模式，但是C++的中文字符串有点坑外加技术彩笔，未能实现
+*/
+#include<iostream>
+#include<fstream>
+#include<cstdio>
+#include"string.h"
+#define STRINGMAX 50
+#define MAX_VERTEX_NUM 100 //最大顶点数
+#define MAX_INT 1000000 //无穷大 
+using namespace std;
+typedef struct {//对于每一个点要有字符串名称
+	char ChinaPointname[STRINGMAX];
+	char EnglishPointname[STRINGMAX];
+}Vnode;
+typedef struct {//对于每一条边要有字符串名称
+	char Edgename[STRINGMAX];
+	int Edgesize;
+}Enode;
+typedef struct {
+	Enode Enode[MAX_VERTEX_NUM][MAX_VERTEX_NUM];
+	Vnode vnode[MAX_VERTEX_NUM];
+}MGraph;
+/*********************************************************/
+typedef struct {
+	int pi[MAX_VERTEX_NUM];//存放v到vi的一条最短路径
+	int end;
+}PathType;
+
+void Floyd(MGraph * G, int path[][MAX_VERTEX_NUM], int D[][MAX_VERTEX_NUM], int n) {
+	int i, j, k;
+	for (i = 0; i<n; i++) {//初始化,对于最短路径标志矩阵不相邻就是最大，最大就转化为-1；
+		for (j = 0; j<n; j++) {
+			if (G->Enode[i][j].Edgesize<MAX_INT) {
+				path[i][j] = j;
+			}
+			else {
+				path[i][j] = -1;
+			}
+			D[i][j] = G->Enode[i][j].Edgesize;//对于最短路径长度矩阵，刚开始最短路径就是图提供的初始信息；
+		}
+	}
+	//floyd的核心就是三层循环，注意K在外面
+	for (k = 0; k<n; k++) {//进行n次试探 
+		for (i = 0; i<n; i++) {
+			for (j = 0; j<n; j++) {
+				if (D[i][j]>D[i][k] + D[k][j]) {
+					D[i][j] = D[i][k] + D[k][j];//取小者 
+					path[i][j] = path[i][k];//改Vi的后继 
+				}
+			}
+		}
+	}
+}
+
+
+
+int main()
+{
+	/*定义变量模块*/
+	int prek;
+		MGraph G;
+		int path[MAX_VERTEX_NUM][MAX_VERTEX_NUM];//v到各顶点的最短路径向量
+		int D[MAX_VERTEX_NUM][MAX_VERTEX_NUM];//v到各顶点最短路径长度向量 
+		char a[50], b[50];
+	/*读取文件步骤*/
+		int Vernumber;
+		cout << "***************************  Welcome to Floyd-Sib MapSearchSystem!!!  *******************************" << endl;
+		cout << "输入文件路径:" << endl;//suihuamap.txt
+		cin >> a;
+		fstream fin(a);
+		cout << "载入绥化市区地图..." << endl;
+		cout << "根据文件生成无向图邻接矩阵..." << endl;
+		fin >> Vernumber;
+		for (int i = 0; i < Vernumber; i++)
+		{
+			fin >> G.vnode[i].ChinaPointname;
+		}
+		for (int i = 0; i < Vernumber; i++)
+		{
+			fin >> G.vnode[i].EnglishPointname;
+		}
+		for (int i=0; i < Vernumber; i++)
+		{
+			for (int j = 0; j < Vernumber; j++)
+			{
+				fin >> G.Enode[i][j].Edgesize;
+			}
+		}
+		for (int i = 0; i < Vernumber; i++)
+		{
+			for (int j = 0; j < Vernumber; j++)
+			{
+				fin >> G.Enode[i][j].Edgename;
+			}
+		}
+		cout << "开始Floyd算法" << endl;
+		system("pause");
+		cout << "统计最短路径..." << endl;
+		Floyd(&G, path, D, Vernumber);
+		cout << "输出任意点之间最短路径" << endl;
+		system("pause");
+		for (int i = 0; i<Vernumber; i++) {//输出每对顶点间最短路径长度及最短路径
+			for (int j = 0; j<Vernumber; j++) {
+				cout << G.vnode[i].ChinaPointname << "    到" << G.vnode[j].ChinaPointname << "的最短长度为:     ";
+				cout << D[i][j] << endl;
+				cout << "步行大约需要" <<(D[i][j]/96)<< "分钟" << endl;
+				int k = path[i][j];
+				 {
+					cout << "最短路径为:    " << endl;
+					cout << G.vnode[i].ChinaPointname;
+					if(i!=j)
+					cout << " --" << "(" << G.Enode[i][k].Edgename <<")" ;
+					while (k != j) { 
+						cout <<"--> " <<G.vnode[k].ChinaPointname;
+						int prek = k;		
+						k = path[k][j]; 
+						cout << " --" << "(" << G.Enode[prek][k].Edgename << ")";			
+					}
+					cout << "--> "<<G.vnode[j].ChinaPointname;
+				}
+				cout << endl;
+				cout << "*******************************" << endl;
+			}
+		}
+
+		
+	
+	
+
+	system("pause");
+	return 0;
+}
