@@ -1,0 +1,176 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <queue>
+#include <fstream>
+#include <time.h>
+using namespace std;
+
+#define maxn 110  //最大顶点个数
+int n;       //顶点个数
+
+struct arcnode  //边结点
+{
+	     int vertex;     //与表头结点相邻的顶点编号
+	     int weight;     //连接两顶点的边的权值
+	     arcnode * next; //指向下一相邻接点
+	     arcnode() {}
+	     arcnode(int v, int w) :vertex(v), weight(w), next(NULL) {}
+ };
+
+struct vernode      //顶点结点，为每一条邻接表的表头结点
+{
+	     int vex;    //当前定点编号
+	     arcnode * firarc;   //与该顶点相连的第一个顶点组成的边
+}Ver[maxn];
+	
+void Init()  //建立图的邻接表需要先初始化，建立顶点结点
+{
+	for (int i = 1; i <= n; i++)
+		{
+			Ver[i].vex = i;
+			Ver[i].firarc = NULL;
+		}
+}
+
+void Insert2(int a, int b, int w)   //头插法，效率更高，但不能去重边
+	{
+		arcnode * q = new arcnode(b, w);
+		if (Ver[a].firarc == NULL)
+			    Ver[a].firarc = q;
+		else
+			{
+			    arcnode * p = Ver[a].firarc;
+			    q->next = p;
+			    Ver[a].firarc = q;
+			}
+	}
+struct node     //顶点节点，保存id和到源顶点的估算距离，优先队列需要的类型
+	{
+		int id;     //源顶点id和估算距离
+		int w;
+		friend bool operator<(node a, node b)   //因要实现最小堆，按升序排列，因而需要重载运算符，重定义优先级，以小为先
+			{
+			    return a.w > b.w;
+			}
+};
+	
+#define INF 0xfffff    //权值上限
+int parent[maxn];   //每个顶点的父亲节点，可以用于还原最短路径树
+bool visited[maxn]; //用于判断顶点是否已经在最短路径树中，或者说是否已找到最短路径
+node d[maxn];      //源点到每个顶点估算距离，最后结果为源点到所有顶点的最短路。
+priority_queue<node> q; //优先队列stl实现
+void Dijkstra(int s)    //Dijkstra算法，传入源顶点
+{
+	for (int i = 1; i <= n; i++) //初始化
+		{
+			d[i].id = i;
+			d[i].w = INF;           //估算距离置INF
+			parent[i] = -1;         //每个顶点都无父亲节点
+			visited[i] = false;     //都未找到最短路
+		}
+	d[s].w = 0;                 //源点到源点最短路权值为0
+	q.push(d[s]);               //压入队列中
+	while (!q.empty())           //算法的核心，队列空说明完成了操作
+		{
+			node cd = q.top();      //取最小估算距离顶点
+			q.pop();
+			int u = cd.id;
+			if (visited[u])   //注意这一句的深意，避免很多不必要的操作
+				    continue;
+			visited[u] = true;
+			arcnode * p = Ver[u].firarc;
+			//松弛操作
+				while (p != NULL)    //找所有与他相邻的顶点，进行松弛操作，更新估算距离，压入队列。
+			{
+				    int v = p->vertex;
+				    if (!visited[v] && d[v].w > d[u].w + p->weight)
+					{
+					        d[v].w = d[u].w + p->weight;
+					        parent[v] = u;
+					        q.push(d[v]);
+					    }
+				    p = p->next;
+				}
+	}
+}
+	
+int main()
+{
+	cout << "**************************Dijkstra 邻接表****************************" << endl;
+	cout << "功能选择：" << endl;
+	cout << "1.简单测试" << endl;
+	cout << "2.多次运行测试" << endl;
+	int choice;
+	cin >> choice;
+	switch (choice) {
+		case 1: {
+			int m, a, b, c, st, ed;
+			cout << "读取文件，生成邻接表" << endl;
+			system("pause");
+			fstream fin("in.txt");
+			fin >> n >> m;
+			Init();     //计算前必须初始化
+			while (m--)
+			{
+				fin >> a >> b >> c;
+				//scanf_s("%d%d%d", &a, &b, &c);
+				Insert2(a, b, c);   //无向图注意存储两条边
+				Insert2(b, a, c);
+			}
+
+			cout << "开始输出任意边到任意边的最短路径" << endl;
+			system("pause");
+			for (int i = 1; i <= n; i++)
+			{
+				for (int j = 1; j <= n; j++)
+				{
+					cout << i << "点到" << j << "点的";
+					Dijkstra(i);
+					if (d[j].w != INF)
+						cout << "最短路径权值为：" << d[j].w << endl;
+					else
+						cout << "不存在从顶点" << i << "到顶点" << j << "的最短路径" << endl;
+
+				}
+				cout << endl;
+			}
+			break;
+		}
+		case 2:
+		{
+			time_t begin, over;
+			cout << "输入运行次数：" << endl;
+			int time;
+			cin >> time;
+			begin = clock();
+			for (int x = 0; x < time; x++)
+			{
+				fstream fin("in.txt");
+				int m, a, b, c, st, ed;
+				fin >> n >> m;
+				{
+					Init();     //计算前必须初始化
+					while (m--)
+					{
+
+						fin >> a >> b >> c;
+						//scanf_s("%d%d%d", &a, &b, &c);
+						Insert2(a, b, c);   //无向图注意存储两条边
+						Insert2(b, a, c);
+					}
+				}
+			}
+			over = clock();
+			cout << "运行时间为：" << over - begin << "ms" << endl;
+			break;
+		}
+		default: {
+			cout << "非法输入!" << endl;
+			break;
+		}
+	}
+	
+system("pause");
+	return 0;
+}
