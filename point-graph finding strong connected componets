@@ -1,0 +1,229 @@
+#include<cstdio>  
+#include<cstring>  
+#include<algorithm>  //minmax函数
+#include<vector>  
+#include<stack>  
+#include<fstream>
+#include<iostream>
+using namespace std;
+const int maxn = 1000 + 10;
+int n, m;
+vector<int> G[maxn];//保存图节点的容器，所有节点的类型包括点的名称，很显然这里使用邻接表实现的
+
+int pre[maxn], low[maxn], sccno[maxn], dfs_clock, scc_cnt;//各种用于塔杨算法的记忆数组
+//和无向图双联通分量一样，pre数组用于记录每个点的遍历顺序，low数组用于记录该点能在这个先根树中最早能追溯到的位置
+//数学表示：low记录的是这个点他的最根的pre值，因此同一个分支里的所有元素的low值都是相等的
+
+
+//sccno数组用于发现极大强连通分量是记录出栈的每个元素，也就是极大强连通分量的分类数组
+stack<int> S;//将来用于出栈打印强连通分量的栈
+
+typedef struct node//简单分类处理结构体
+{
+	int number;
+	int key, value;
+}N;
+void dfs(int u)
+{
+	pre[u] = low[u] = ++dfs_clock;
+	S.push(u);//访问一个点入栈一个点
+	for (int i = 0; i<G[u].size(); i++)
+	{
+		int v = G[u][i];
+		if (!pre[v])
+		{
+			dfs(v);
+			low[u] = min(low[u], low[v]);//low的取值函数，当u可以到达v的时候，如果v还没有进栈，就选择uv之间较小的回退值
+			//如果v进栈了就选择进栈元素和当前点的最小回退值
+			//这实际上一个找父亲的过程，一定要尽可能的回到更远的父亲，也就是选择更小的回退点的值
+		}
+		else if (!sccno[v])
+		{
+			low[u] = min(low[u], pre[v]);
+		}
+	}
+	if (low[u] == pre[u])//这里可以看出也是塔杨算法，如果达成判断条件就要出栈保存到scnno数组里
+		                 //如果low值和pre值相等，意味着当前点最早只能回到自己，也就是意味着到了子树的根，这时应当出栈了
+	{
+		scc_cnt++;
+		while (true)
+		{
+			int x = S.top(); S.pop();
+			sccno[x] = scc_cnt;
+			if (x == u) break;
+		}
+	}
+}
+void find_scc(int n)
+{
+	scc_cnt = dfs_clock = 0;
+	memset(sccno, 0, sizeof(sccno));//memset函数清空数组
+	memset(pre, 0, sizeof(pre));
+	for (int i = 0; i<n; i++)
+		if (!pre[i]) dfs(i);//pre数组是用于记录所有的点是否进行了访问，没有就从当前点进行dfs
+}
+int main()
+{
+	N vip[10];
+	{
+		cout << "****************************Welcome to strongly connected components ADT*****************************" << endl;
+		cout << "说明：操作的文件是有向图，如果存在强连通分支，显示时每遇到新的圈会以换行区分，每行只打印一个强连通分支！" << endl;
+		cout << "请输入有向图：" << endl;
+		cout << "1:弱连通图" << endl;
+		cout << "2.强连通图" << endl;
+	}
+
+	int choice;
+	cin >> choice;
+	switch (choice) {
+
+	case 1: {
+		fstream fin("in.txt");
+
+		fin >> n >> m;
+		while (n)
+		{
+			for (int i = 0; i < n; i++) G[i].clear();
+			while (m--)//输入边的循环
+			{
+				int u, v;
+				fin >> u >> v;
+				//scanf_s("%d%d", &u, &v);
+				G[u].push_back(v);//十分厉害，这里vector二维数组用于保存边的信息，直接将边的两个节点作为一维和二维坐标输入，实际上是邻接表
+			}
+			
+			
+			cout << "预览有向图邻接表：" << endl;
+			for (int i = 0; i < n; i++)
+			{
+				cout << i << "->";
+				for (int j = 0; j < G[i].size(); j++)
+					cout << G[i][j] << "->";
+				cout << endl;
+			}
+			system("pause");
+			cout <<endl<< "开始寻找极大强连通分支：" << endl;
+
+			find_scc(n);//求解极大强连通分支函数
+			system("pause");
+			cout << endl << "极大强连通分支如下：" << endl;
+			//简单的标记函数，处理sccno分类数组，将各个强连通分支分开打印
+			for (int i = 0; i < n; i++)
+			{
+				vip[i].number = i;
+				vip[i].key = i;
+				vip[i].value = sccno[i];
+
+				//printf("%d号点属于%d分量\n", i, sccno[i]);
+			}
+
+			int flag = 0;//这里的flag用于判断scnno数组是否真正进行了分类，没有就证明没有两个以上的强连通分支，也就意味着没有最大强连通分支
+			int total = 0;
+			for (int i = 0; i < n; i++)
+			{
+				if (vip[i].value != 1)
+				{
+					flag = 1;
+				}
+			}
+			if (flag == 1) {
+				
+				for (int i = 0; i < n; i++)
+				{
+					for (int j = 0; j < n; j++)
+					{
+						if (vip[j].value == i)
+						{
+							printf("->%d", vip[j].number);
+						}
+					}
+					printf("\n");
+					
+				}
+				
+			}
+			else {
+				printf("无极大连通分量！\n");
+			}
+
+
+
+		}
+		break;
+	}
+
+	case 2:
+	{
+		fstream fin("in2.txt");
+		fin >> n >> m;
+		while (n)
+		{
+			for (int i = 0; i < n; i++) G[i].clear();
+			while (m--)
+			{
+				int u, v;
+				fin >> u >> v;
+				//scanf_s("%d%d", &u, &v);
+				G[u].push_back(v);
+			}
+
+			cout << "预览有向图邻接表：" << endl;
+			for (int i = 0; i < n; i++)
+			{
+				cout << i << "->";
+				for (int j = 0; j < G[i].size(); j++)
+					cout << G[i][j] << "->";
+				cout << endl;
+			}
+			system("pause");
+			cout << endl << "开始寻找极大强连通分支：" << endl;
+
+			find_scc(n);//求解极大强连通分支函数
+			system("pause");
+			cout << endl << "极大强连通分支如下：" << endl;
+
+
+
+			for (int i = 0; i < n; i++)
+			{
+				vip[i].number = i;
+				vip[i].key = i;
+				vip[i].value = sccno[i];
+
+				//printf("%d号点属于%d分量\n", i, sccno[i]);
+			}
+
+			int flag = 0;
+			for (int i = 0; i < n; i++)
+			{
+				if (vip[i].value != 1)
+					flag = 1;
+			}
+			if (flag == 1) {
+				for (int i = 0; i < n; i++)
+				{
+					for (int j = 0; j < n; j++)
+					{
+						if (vip[j].value == i)
+						{
+							printf("->%d", vip[j].number);
+						}
+					}
+					printf("\n");
+				}
+			}
+			else {
+				printf("无极大连通分量！\n");
+				cout << "最大的强连通分量是本身：" << endl;
+				for (int i = 0; i < n; i++)cout <<vip[i].key << "->";
+			}
+		}
+		break;
+	}
+	default:
+		break;
+
+	}
+	system("pause");
+	return 0;
+}
